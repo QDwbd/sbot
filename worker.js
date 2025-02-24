@@ -5,9 +5,9 @@ const ADMIN_UID = ENV_ADMIN_UID // your user id, get it from https://t.me/userna
 
 const NOTIFY_INTERVAL = 3600 * 1000;
 const fraudDb = 'https://raw.githubusercontent.com/QDbot/sBot/main/data/fraud.db';
-const notificationUrl = 'https://raw.githubusercontent.com/QDbot/sBot/main/data/notification.txt'
-const startMsgUrl = 'https://raw.githubusercontent.com/QDbot/sBot/main/data/startMessage.md';
-const lanren = 'https://raw.githubusercontent.com/QDbot/sBot/main/data/lanren.md';
+const notificationUrl = 'https://raw.githubusercontent.com/QDwbd/sBot/main/data/notification.txt';
+const startMsgUrl = 'https://raw.githubusercontent.com/QDwbd/sBot/main/data/startMessage.md';
+const lanrenUrl = 'https://raw.githubusercontent.com/QDwbd/sBot/main/data/lanren.md';
 
 const enable_notification = true
 /**
@@ -108,14 +108,12 @@ async function onMessage (message) {
       text:startMsg,
     })
   }
-  // 使用正则表达式匹配“配置文件”或“配置”
   if (message.text && /配置文件|配置/i.test(message.text)) {
-    // 获取配置文件的内容
-    let lanren = await fetch(lanren).then(r => r.text());
+    let lanren = await fetch(lanrenUrl).then(r => r.text());
 
     return sendMessage({
       chat_id: message.chat.id,
-      text: lanren // 回复从lanren获取的完整内容
+      text: lanren,
     })
   }
   if(message.chat.id.toString() === ADMIN_UID){
