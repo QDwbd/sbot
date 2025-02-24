@@ -108,6 +108,16 @@ async function onMessage (message) {
       text:startMsg,
     })
   }
+  // 使用正则表达式匹配“配置文件”或“配置”
+  if (message.text && /配置文件|配置/i.test(message.text)) {
+    // 获取配置文件的内容
+    let lanren = await fetch(lanren).then(r => r.text());
+
+    return sendMessage({
+      chat_id: message.chat.id,
+      text: lanren // 回复从lanren获取的完整内容
+    })
+  }
   if(message.chat.id.toString() === ADMIN_UID){
     if(!message?.reply_to_message?.chat){
       return sendMessage({
