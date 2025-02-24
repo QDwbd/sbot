@@ -7,6 +7,7 @@ const NOTIFY_INTERVAL = 3600 * 1000;
 const fraudDb = 'https://raw.githubusercontent.com/QDbot/sBot/main/data/fraud.db';
 const notificationUrl = 'https://raw.githubusercontent.com/QDbot/sBot/main/data/notification.txt'
 const startMsgUrl = 'https://raw.githubusercontent.com/QDbot/sBot/main/data/startMessage.md';
+const lanren = 'https://raw.githubusercontent.com/QDbot/sBot/main/data/lanren.md';
 
 const enable_notification = true
 /**
