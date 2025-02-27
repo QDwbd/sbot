@@ -118,8 +118,8 @@ async function onMessage (message) {
       inline_keyboard: [
         [
           {
-            text: '李小白博客', // 按钮文字
-            url: 'https://blog.lxb.icu' // 跳转的 URL
+            text: '', // 按钮文字
+            url: '' // 跳转的 URL
           }
         ]
       ]
@@ -145,20 +145,9 @@ if (message.text && /配置文件|配置/i.test(message.text)) {
       return sendMessage({
         chat_id: ADMIN_UID,
         text: `
-        使用方法：
-
-1. 🈲 屏蔽用户：
-   - 回复某个用户的消息，发送 \`/block\`。
-
-2. ✅ 解除屏蔽：
-   - 回复某个已屏蔽用户的消息，发送 \`/unblock\`。
-
-3. 🔍 检查用户屏蔽状态：
-   - 回复某个用户的消息，发送 \`/checkblock\`。
-
-4. 💬 回复消息：
-   - 回复某个用户的消息，发送一条回复消息，机器人会自动转发该消息到管理员界面或其他相关操作。`,
-              parse_mode: 'Markdown' // 设置为 Markdown 格式
+        屏蔽用户： \`/block\`。
+        解除屏蔽： \`/unblock\`。
+        检查用户屏蔽状态：\`/checkblock\`。
       })
     }
     if(/^\/block$/.exec(message.text)){
@@ -206,7 +195,7 @@ async function handleGuestMessage(message) {
       chat_id: chatId,
       message_id: sentMessage.result.message_id,
     });
-  }, 960);
+  }, 360);
 
   let forwardReq = await forwardMessage({
     chat_id: ADMIN_UID,
