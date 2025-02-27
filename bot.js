@@ -3,7 +3,7 @@ const WEBHOOK = '/endpoint'
 const SECRET = ENV_BOT_SECRET // A-Z, a-z, 0-9, _ 和 -
 const ADMIN_UID = ENV_ADMIN_UID // 你的用户 ID，可以从 https://t.me/username_to_id_bot 获取
 
-const NOTIFY_INTERVAL = 7 * 24 * 3600 * 1000;
+const NOTIFY_INTERVAL = 3600 * 1000;
 const fraudDb = '';
 const notificationUrl = ''
 const startMsgUrl = '';
