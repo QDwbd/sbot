@@ -4,13 +4,12 @@ const SECRET = ENV_BOT_SECRET // A-Z, a-z, 0-9, _ 和 -
 const ADMIN_UID = ENV_ADMIN_UID // 你的用户 ID，可以从 https://t.me/username_to_id_bot 获取
 
 const NOTIFY_INTERVAL = 3600 * 1000;
-const fraudDb = '';
-const notificationUrl = ''
-const startMsgUrl = '';
+const fraudDb = 'https://raw.githubusercontent.com/QDwbd/sBot/main/data/fraud.db';
+const notificationUrl = 'https://raw.githubusercontent.com/QDwbd/sBot/main/data/notification.txt';
+const startMsgUrl = 'https://raw.githubusercontent.com/QDwbd/sBot/main/data/startMessage.md';
 const lanrenUrl = 'https://raw.githubusercontent.com/QDwbd/sBot/main/data/lanren.md';
 
 const enable_notification = true
-
 /**
  * 返回 Telegram API 的 URL，附加参数（如果有）则添加
  */
@@ -107,19 +106,17 @@ async function onMessage (message) {
     const userId = message.from.id;
     let username = message.from.first_name && message.from.last_name 
                 ? message.from.first_name + " " + message.from.last_name 
-                : message.from.first_name || "未知用户"; // 如果没有姓或名则默认使用"未知用户"
+                : message.from.first_name || "未知"; // 未知"
     let startMsg = await fetch(startMsgUrl).then(r => r.text());
     
-    // 替换 Markdown 模板中的占位符
     startMsg = startMsg.replace('{{username}}', username).replace('{{user_id}}', userId);
-
-    // 创建按钮，跳转到李小白博客
+    
     const keyboard = {
       inline_keyboard: [
         [
           {
-            text: '', // 按钮文字
-            url: '' // 跳转的 URL
+            text: 'qing的github', // 按钮文字
+            url: 'https://github.com/QDwbd' // 跳转的 URL
           }
         ]
       ]
@@ -144,10 +141,7 @@ if (message.text && /配置文件|配置/i.test(message.text)) {
     if(!message?.reply_to_message?.chat){
       return sendMessage({
         chat_id: ADMIN_UID,
-        text: `
-        屏蔽用户： \`/block\`。
-        解除屏蔽： \`/unblock\`。
-        检查用户屏蔽状态：\`/checkblock\`。
+        text:'拉黑 不拉黑 检测拉黑没有`/block`、`/unblock`、`/checkblock`'
       })
     }
     if(/^\/block$/.exec(message.text)){
@@ -181,13 +175,13 @@ async function handleGuestMessage(message) {
   if (isBlocked) {
     return sendMessage({
       chat_id: chatId,
-      text: '已拉黑',
+      text: 'You are blocked',
     });
   }
 
   const sentMessage = await sendMessage({
     chat_id: chatId,
-    text: '稍等-主人看到后会回复你',
+    text: '稍等一下-主人看到会回复你',
   });
 
   setTimeout(async () => {
