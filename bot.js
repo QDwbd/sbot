@@ -129,18 +129,18 @@ async function onMessage (message) {
       reply_markup: keyboard // 设置键盘
     });
   }
-if (message.text && /配置文件|配置/i.test(message.text)) {
+  if (message.text && /配置文件|配置/i.test(message.text)) {
     let lanren = await fetch(lanrenUrl).then(r => r.text());
+
     return sendMessage({
-        chat_id: message.chat.id,
-        text: lanren,
+      chat_id: message.chat.id,
+      text: lanren,
     })
-}
-  // 处理管理员消息
+  }
   if(message.chat.id.toString() === ADMIN_UID){
     if(!message?.reply_to_message?.chat){
       return sendMessage({
-        chat_id: ADMIN_UID,
+        chat_id:ADMIN_UID,
         text:'拉黑 不拉黑 检测拉黑没有`/block`、`/unblock`、`/checkblock`'
       })
     }
@@ -153,24 +153,20 @@ if (message.text && /配置文件|配置/i.test(message.text)) {
     if(/^\/checkblock$/.exec(message.text)){
       return checkBlock(message)
     }
-    let guestChantId = await lBot.get('msg-map-' + message?.reply_to_message.message_id,
+    let guestChantId = await sBot.get('msg-map-' + message?.reply_to_message.message_id,
                                       { type: "json" })
     return copyMessage({
       chat_id: guestChantId,
-      from_chat_id: message.chat.id,
-      message_id: message.message_id,
+      from_chat_id:message.chat.id,
+      message_id:message.message_id,
     })
   }
-  
-  return handleGuestMessage(message);
+  return handleGuestMessage(message)
 }
 
-/**
- * 处理访客消息
- */
 async function handleGuestMessage(message) {
   let chatId = message.chat.id;
-  let isBlocked = await lBot.get('isblocked-' + chatId, { type: "json" });
+  let isBlocked = await sBot.get('isblocked-' + chatId, { type: "json" });
 
   if (isBlocked) {
     return sendMessage({
@@ -198,15 +194,13 @@ async function handleGuestMessage(message) {
   });
 
   if (forwardReq.ok) {
-    await lBot.put('msg-map-' + forwardReq.result.message_id, chatId);
+    await sBot.put('msg-map-' + forwardReq.result.message_id, chatId);
   }
 
   return handleNotify(message);
 }
 
-/**
- * 处理通知
- */
+
 async function handleNotify(message){
   // 先判断是否是诈骗人员，如果是，则直接提醒
   // 如果不是，则根据时间间隔提醒：用户id，交易注意点等
@@ -218,9 +212,9 @@ async function handleNotify(message){
     })
   }
   if(enable_notification){
-    let lastMsgTime = await lBot.get('lastmsg-' + chatId, { type: "json" })
+    let lastMsgTime = await sBot.get('lastmsg-' + chatId, { type: "json" })
     if(!lastMsgTime || Date.now() - lastMsgTime > NOTIFY_INTERVAL){
-      await lBot.put('lastmsg-' + chatId, Date.now())
+      await sBot.put('lastmsg-' + chatId, Date.now())
       return sendMessage({
         chat_id: ADMIN_UID,
         text:await fetch(notificationUrl).then(r => r.text())
@@ -229,11 +223,8 @@ async function handleNotify(message){
   }
 }
 
-/**
- * 处理拉黑操作
- */
 async function handleBlock(message){
-  let guestChantId = await lBot.get('msg-map-' + message.reply_to_message.message_id,
+  let guestChantId = await sBot.get('msg-map-' + message.reply_to_message.message_id,
                                       { type: "json" })
   if(guestChantId === ADMIN_UID){
     return sendMessage({
@@ -241,7 +232,7 @@ async function handleBlock(message){
       text:'不能屏蔽自己'
     })
   }
-  await lBot.put('isblocked-' + guestChantId, true)
+  await sBot.put('isblocked-' + guestChantId, true)
 
   return sendMessage({
     chat_id: ADMIN_UID,
@@ -249,14 +240,11 @@ async function handleBlock(message){
   })
 }
 
-/**
- * 处理解除拉黑操作
- */
 async function handleUnBlock(message){
-  let guestChantId = await lBot.get('msg-map-' + message.reply_to_message.message_id,
+  let guestChantId = await sBot.get('msg-map-' + message.reply_to_message.message_id,
   { type: "json" })
 
-  await lBot.put('isblocked-' + guestChantId, false)
+  await sBot.put('isblocked-' + guestChantId, false)
 
   return sendMessage({
     chat_id: ADMIN_UID,
@@ -264,13 +252,10 @@ async function handleUnBlock(message){
   })
 }
 
-/**
- * 检查是否被拉黑
- */
 async function checkBlock(message){
-  let guestChantId = await lBot.get('msg-map-' + message.reply_to_message.message_id,
+  let guestChantId = await sBot.get('msg-map-' + message.reply_to_message.message_id,
   { type: "json" })
-  let blocked = await lBot.get('isblocked-' + guestChantId, { type: "json" })
+  let blocked = await sBot.get('isblocked-' + guestChantId, { type: "json" })
 
   return sendMessage({
     chat_id: ADMIN_UID,
@@ -279,7 +264,7 @@ async function checkBlock(message){
 }
 
 /**
- * 发送纯文本消息
+ * Send plain text message
  * https://core.telegram.org/bots/api#sendmessage
  */
 async function sendPlainText (chatId, text) {
@@ -290,7 +275,7 @@ async function sendPlainText (chatId, text) {
 }
 
 /**
- * 设置 webhook 到本 worker 的 URL
+ * Set webhook to this worker's url
  * https://core.telegram.org/bots/api#setwebhook
  */
 async function registerWebhook (event, requestUrl, suffix, secret) {
@@ -301,7 +286,7 @@ async function registerWebhook (event, requestUrl, suffix, secret) {
 }
 
 /**
- * 移除 webhook
+ * Remove webhook
  * https://core.telegram.org/bots/api#setwebhook
  */
 async function unRegisterWebhook (event) {
@@ -309,9 +294,6 @@ async function unRegisterWebhook (event) {
   return new Response('ok' in r && r.ok ? 'Ok' : JSON.stringify(r, null, 2))
 }
 
-/**
- * 检查是否为诈骗用户
- */
 async function isFraud(id){
   id = id.toString()
   let db = await fetch(fraudDb).then(r => r.text())
