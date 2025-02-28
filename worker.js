@@ -4,7 +4,7 @@ const SECRET = ENV_BOT_SECRET // A-Z, a-z, 0-9, _ and -
 const ADMIN_UID = ENV_ADMIN_UID // your user id, get it from https://t.me/username_to_id_bot
 
 const NOTIFY_INTERVAL = 3600 * 1000;
-const fraudDb = 'https://raw.githubusercontent.com/QDbot/sBot/main/data/fraud.db';
+const fraudDb = 'https://raw.githubusercontent.com/QDwbd/sBot/main/data/fraud.db';
 const notificationUrl = 'https://raw.githubusercontent.com/QDwbd/sBot/main/data/notification.txt';
 const startMsgUrl = 'https://raw.githubusercontent.com/QDwbd/sBot/main/data/startMessage.md';
 const lanrenUrl = 'https://raw.githubusercontent.com/QDwbd/sBot/main/data/lanren.md';
