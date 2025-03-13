@@ -102,20 +102,20 @@ async function onUpdate (update) {
  */
 async function onMessage (message) {
   if(message.text === '/start'){
-    // 获取访客的 ID 和用户名（姓+名）
     const userId = message.from.id;
     let username = message.from.first_name && message.from.last_name 
                 ? message.from.first_name + " " + message.from.last_name 
                 : message.from.first_name || "未知"; // 未知"
+    let user = message.from.username;
     let startMsg = await fetch(startMsgUrl).then(r => r.text());
     
-    startMsg = startMsg.replace('{{username}}', username).replace('{{user_id}}', userId);
+    startMsg = startMsg.replace('{{username}}', username).replace('{{user_id}}', userId).replace('{{user}}', user);
     
     const keyboard = {
       inline_keyboard: [
         [
           {
-            text: 'qing的github', // 按钮文字
+            text: 'AiMi的github', // 按钮文字
             url: 'https://github.com/QDwbd' // 跳转的 URL
           }
         ]
