@@ -1,7 +1,7 @@
-const TOKEN = ENV_BOT_TOKEN // Get it from @BotFather
+const TOKEN = ENV_BOT_TOKEN // 从 @BotFather 获取的令牌
 const WEBHOOK = '/endpoint'
-const SECRET = ENV_BOT_SECRET // A-Z, a-z, 0-9, _ and -
-const ADMIN_UID = ENV_ADMIN_UID // your user id, get it from https://t.me/username_to_id_bot
+const SECRET = ENV_BOT_SECRET // A-Z, a-z, 0-9, _ 和 -
+const ADMIN_UID = ENV_ADMIN_UID // 你的用户 ID，可以从 https://t.me/username_to_id_bot 获取
 
 const NOTIFY_INTERVAL = 3600 * 1000;
 const fraudDb = 'https://raw.githubusercontent.com/QDwbd/sBot/main/data/fraud.db';
@@ -11,7 +11,7 @@ const lanrenUrl = 'https://raw.githubusercontent.com/QDwbd/sBot/main/data/lanren
 
 const enable_notification = true
 /**
- * Return url to telegram api, optionally with parameters added
+ * 返回 Telegram API 的 URL，附加参数（如果有）则添加
  */
 function apiUrl (methodName, params = null) {
   let query = ''
@@ -53,7 +53,7 @@ function deleteMessage(msg = {}) {
 }
 
 /**
- * Wait for requests to the worker
+ * 等待请求到达 worker
  */
 addEventListener('fetch', event => {
   const url = new URL(event.request.url)
@@ -69,25 +69,25 @@ addEventListener('fetch', event => {
 })
 
 /**
- * Handle requests to WEBHOOK
+ * 处理对 WEBHOOK 的请求
  * https://core.telegram.org/bots/api#update
  */
 async function handleWebhook (event) {
-  // Check secret
+  // 检查密钥
   if (event.request.headers.get('X-Telegram-Bot-Api-Secret-Token') !== SECRET) {
     return new Response('Unauthorized', { status: 403 })
   }
 
-  // Read request body synchronously
+  // 同步读取请求体
   const update = await event.request.json()
-  // Deal with response asynchronously
+  // 异步处理更新
   event.waitUntil(onUpdate(update))
 
   return new Response('Ok')
 }
 
 /**
- * Handle incoming Update
+ * 处理传入的更新信息
  * https://core.telegram.org/bots/api#update
  */
 async function onUpdate (update) {
@@ -97,16 +97,37 @@ async function onUpdate (update) {
 }
 
 /**
- * Handle incoming Message
+ * 处理传入的消息
  * https://core.telegram.org/bots/api#message
  */
 async function onMessage (message) {
   if(message.text === '/start'){
-    let startMsg = await fetch(startMsgUrl).then(r => r.text())
+    const userId = message.from.id;
+    let username = message.from.first_name && message.from.last_name 
+                ? message.from.first_name + " " + message.from.last_name 
+                : message.from.first_name || "未知"; // 未知"
+    let user = message.from.username;
+    let startMsg = await fetch(startMsgUrl).then(r => r.text());
+    
+    startMsg = startMsg.replace('{{username}}', username).replace('{{user_id}}', userId).replace('{{user}}', user);
+    
+    const keyboard = {
+      inline_keyboard: [
+        [
+          {
+            text: 'AiMi的github', // 按钮文字
+            url: 'https://github.com/QDwbd' // 跳转的 URL
+          }
+        ]
+      ]
+    };
+
     return sendMessage({
-      chat_id:message.chat.id,
-      text:startMsg,
-    })
+      chat_id: message.chat.id,
+      text: startMsg,
+      parse_mode: 'Markdown', // 设置 Markdown 格式
+      reply_markup: keyboard // 设置键盘
+    });
   }
   if (message.text && /配置文件|配置/i.test(message.text)) {
     let lanren = await fetch(lanrenUrl).then(r => r.text());
