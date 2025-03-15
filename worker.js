@@ -1,17 +1,12 @@
-const TOKEN = ENV_BOT_TOKEN // 从 @BotFather 获取的令牌
+const TOKEN = ENV_BOT_TOKEN
 const WEBHOOK = '/endpoint'
-const SECRET = ENV_BOT_SECRET // A-Z, a-z, 0-9, _ 和 -
-const ADMIN_UID = ENV_ADMIN_UID // 你的用户 ID，可以从 https://t.me/username_to_id_bot 获取
-
+const SECRET = ENV_BOT_SECRET
+const ADMIN_UID = ENV_ADMIN_UID
 const NOTIFY_INTERVAL = 3600 * 1000;
 const notificationUrl = 'https://raw.githubusercontent.com/QDwbd/sBot/main/data/notification.txt';
 const startMsgUrl = 'https://raw.githubusercontent.com/QDwbd/sBot/main/data/startMessage.md';
 const lanrenUrl = 'https://raw.githubusercontent.com/QDwbd/sBot/main/data/lanren.md';
-
 const enable_notification = true
-/**
- * 返回 Telegram API 的 URL，附加参数（如果有）则添加
- */
 function apiUrl (methodName, params = null) {
   let query = ''
   if (params) {
@@ -19,12 +14,10 @@ function apiUrl (methodName, params = null) {
   }
   return `https://api.telegram.org/bot${TOKEN}/${methodName}${query}`
 }
-
 function requestTelegram(methodName, body, params = null){
   return fetch(apiUrl(methodName, params), body)
     .then(r => r.json())
 }
-
 function makeReqBody(body){
   return {
     method:'POST',
@@ -34,26 +27,18 @@ function makeReqBody(body){
     body:JSON.stringify(body)
   }
 }
-
 function sendMessage(msg = {}){
   return requestTelegram('sendMessage', makeReqBody(msg))
 }
-
 function copyMessage(msg = {}){
   return requestTelegram('copyMessage', makeReqBody(msg))
 }
-
 function forwardMessage(msg){
   return requestTelegram('forwardMessage', makeReqBody(msg))
 }
-
 function deleteMessage(msg = {}) {
   return requestTelegram('deleteMessage', makeReqBody(msg))
 }
-
-/**
- * 等待请求到达 worker
- */
 addEventListener('fetch', event => {
   const url = new URL(event.request.url)
   if (url.pathname === WEBHOOK) {
@@ -66,39 +51,19 @@ addEventListener('fetch', event => {
     event.respondWith(new Response('No handler for this request'))
   }
 })
-
-/**
- * 处理对 WEBHOOK 的请求
- * https://core.telegram.org/bots/api#update
- */
 async function handleWebhook (event) {
-  // 检查密钥
   if (event.request.headers.get('X-Telegram-Bot-Api-Secret-Token') !== SECRET) {
     return new Response('Unauthorized', { status: 403 })
   }
-
-  // 同步读取请求体
   const update = await event.request.json()
-  // 异步处理更新
   event.waitUntil(onUpdate(update))
-
   return new Response('Ok')
 }
-
-/**
- * 处理传入的更新信息
- * https://core.telegram.org/bots/api#update
- */
 async function onUpdate (update) {
   if ('message' in update) {
     await onMessage(update.message)
   }
 }
-
-/**
- * 处理传入的消息
- * https://core.telegram.org/bots/api#message
- */
 async function onMessage (message) {
   if(message.text === '/start'){
     const userId = message.from.id;
@@ -107,35 +72,30 @@ async function onMessage (message) {
                 : message.from.first_name || "未知";
                 let user = message.from.username;
     let startMsg = await fetch(startMsgUrl).then(r => r.text());
-    
     startMsg = startMsg.replace(/{{username}}/g, username).replace(/{{user_id}}/g, userId).replace(/{{user}}/g, user);
-    
     let keyboard = {
       inline_keyboard: [
         [
           {
-            text: 'AiMi的github', // 按钮文字
-            url: 'https://github.com/QDwbd' // 跳转的 URL
+            text: 'AiMi的github',
+            url: 'https://github.com/QDwbd'
           }
         ]
       ]
     };
-
     return sendMessage({
       chat_id: message.chat.id,
       text: startMsg,
-      parse_mode: 'Markdown', // 设置 Markdown 格式
-      reply_markup: keyboard ,// 设置键盘
+      parse_mode: 'Markdown',
+      reply_markup: keyboard ,
     });
   }
   if (message.text && /配置文件|配置/i.test(message.text)) {
-  
     const linkText = `[AiMi配置](https://raw.githubusercontent.com/QDwbd/srule/refs/heads/main/s.conf)`;
-  
     return sendMessage({
       chat_id: message.chat.id,
       text: linkText,
-      parse_mode: 'Markdown', // 指定使用 Markdown 解析
+      parse_mode: 'Markdown',
     });
   }
   if(message.chat.id.toString() === ADMIN_UID){
@@ -164,43 +124,35 @@ async function onMessage (message) {
   }
   return handleGuestMessage(message)
 }
-
 async function handleGuestMessage(message) {
   let chatId = message.chat.id;
   let isBlocked = await sBot.get('isblocked-' + chatId, { type: "json" });
-
   if (isBlocked) {
     return sendMessage({
       chat_id: chatId,
       text: 'You are blocked',
     });
   }
-
   const sentMessage = await sendMessage({
     chat_id: chatId,
     text: '稍等一下-主人看到会回复你',
   });
-
   setTimeout(async () => {
     await deleteMessage({
       chat_id: chatId,
       message_id: sentMessage.result.message_id,
     });
   }, 360);
-
   let forwardReq = await forwardMessage({
     chat_id: ADMIN_UID,
     from_chat_id: message.chat.id,
     message_id: message.message_id,
   });
-
   if (forwardReq.ok) {
     await sBot.put('msg-map-' + forwardReq.result.message_id, chatId);
   }
-
   return handleNotify(message);
 }
-
 async function handleNotify(message){
   if(enable_notification){
     let lastMsgTime = await sBot.get('lastmsg-' + message.chat.id, { type: "json" })
@@ -213,7 +165,6 @@ async function handleNotify(message){
     }
   }
 }
-
 async function handleBlock(message){
   let guestChantId = await sBot.get('msg-map-' + message.reply_to_message.message_id,
                                       { type: "json" })
@@ -224,64 +175,40 @@ async function handleBlock(message){
     })
   }
   await sBot.put('isblocked-' + guestChantId, true)
-
   return sendMessage({
     chat_id: ADMIN_UID,
     text: `UID:${guestChantId}屏蔽成功`,
-
   })
 }
-
 async function handleUnBlock(message){
   let guestChantId = await sBot.get('msg-map-' + message.reply_to_message.message_id,
   { type: "json" })
-
   await sBot.put('isblocked-' + guestChantId, false)
-
   return sendMessage({
     chat_id: ADMIN_UID,
     text:`UID:${guestChantId}解除屏蔽成功`,
-
   })
 }
-
 async function checkBlock(message){
   let guestChantId = await sBot.get('msg-map-' + message.reply_to_message.message_id,
   { type: "json" })
   let blocked = await sBot.get('isblocked-' + guestChantId, { type: "json" })
-
   return sendMessage({
     chat_id: ADMIN_UID,
     text: `UID:${guestChantId}` + (blocked ? '被屏蔽' : '没有被屏蔽')
   })
 }
-
-/**
- * Send plain text message
- * https://core.telegram.org/bots/api#sendmessage
- */
 async function sendPlainText (chatId, text) {
   return sendMessage({
     chat_id: chatId,
     text
   })
 }
-
-/**
- * Set webhook to this worker's url
- * https://core.telegram.org/bots/api#setwebhook
- */
 async function registerWebhook (event, requestUrl, suffix, secret) {
-  // https://core.telegram.org/bots/api#setwebhook
   const webhookUrl = `${requestUrl.protocol}//${requestUrl.hostname}${suffix}`
   const r = await (await fetch(apiUrl('setWebhook', { url: webhookUrl, secret_token: secret }))).json()
   return new Response('ok' in r && r.ok ? 'Ok' : JSON.stringify(r, null, 2))
 }
-
-/**
- * Remove webhook
- * https://core.telegram.org/bots/api#setwebhook
- */
 async function unRegisterWebhook (event) {
   const r = await (await fetch(apiUrl('setWebhook', { url: '' }))).json()
   return new Response('ok' in r && r.ok ? 'Ok' : JSON.stringify(r, null, 2))
