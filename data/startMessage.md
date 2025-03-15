@@ -3,3 +3,4 @@
 your name:{{username}}
 your id:{{user_id}}
 your username:[{{user}}](https://t.me/{{user}})
+@{{user}}
