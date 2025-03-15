@@ -4,7 +4,6 @@ const SECRET = ENV_BOT_SECRET // A-Z, a-z, 0-9, _ 和 -
 const ADMIN_UID = ENV_ADMIN_UID // 你的用户 ID，可以从 https://t.me/username_to_id_bot 获取
 
 const NOTIFY_INTERVAL = 3600 * 1000;
-const fraudDb = 'https://raw.githubusercontent.com/QDwbd/sBot/main/data/fraud.db';
 const notificationUrl = 'https://raw.githubusercontent.com/QDwbd/sBot/main/data/notification.txt';
 const startMsgUrl = 'https://raw.githubusercontent.com/QDwbd/sBot/main/data/startMessage.md';
 const lanrenUrl = 'https://raw.githubusercontent.com/QDwbd/sBot/main/data/lanren.md';
@@ -106,12 +105,12 @@ async function onMessage (message) {
     let username = message.from.first_name && message.from.last_name 
                 ? message.from.first_name + " " + message.from.last_name 
                 : message.from.first_name || "未知";
-    let user = message.from.username;
+                let user = message.from.username;
     let startMsg = await fetch(startMsgUrl).then(r => r.text());
     
     startMsg = startMsg.replace(/{{username}}/g, username).replace(/{{user_id}}/g, userId).replace(/{{user}}/g, user);
     
-    const keyboard = {
+    let keyboard = {
       inline_keyboard: [
         [
           {
@@ -126,16 +125,18 @@ async function onMessage (message) {
       chat_id: message.chat.id,
       text: startMsg,
       parse_mode: 'Markdown', // 设置 Markdown 格式
-      reply_markup: keyboard // 设置键盘
+      reply_markup: keyboard ,// 设置键盘
     });
   }
   if (message.text && /配置文件|配置/i.test(message.text)) {
-    let lanren = await fetch(lanrenUrl).then(r => r.text());
-
+  
+    const linkText = `[AiMi配置](https://raw.githubusercontent.com/QDwbd/srule/refs/heads/main/s.conf)`;
+  
     return sendMessage({
       chat_id: message.chat.id,
-      text: lanren,
-    })
+      text: linkText,
+      parse_mode: 'Markdown', // 指定使用 Markdown 解析
+    });
   }
   if(message.chat.id.toString() === ADMIN_UID){
     if(!message?.reply_to_message?.chat){
@@ -200,21 +201,11 @@ async function handleGuestMessage(message) {
   return handleNotify(message);
 }
 
-
 async function handleNotify(message){
-  // 先判断是否是诈骗人员，如果是，则直接提醒
-  // 如果不是，则根据时间间隔提醒：用户id，交易注意点等
-  let chatId = message.chat.id;
-  if(await isFraud(chatId)){
-    return sendMessage({
-      chat_id: ADMIN_UID,
-      text:`检测到骗子，UID${chatId}`
-    })
-  }
   if(enable_notification){
-    let lastMsgTime = await sBot.get('lastmsg-' + chatId, { type: "json" })
+    let lastMsgTime = await sBot.get('lastmsg-' + message.chat.id, { type: "json" })
     if(!lastMsgTime || Date.now() - lastMsgTime > NOTIFY_INTERVAL){
-      await sBot.put('lastmsg-' + chatId, Date.now())
+      await sBot.put('lastmsg-' + message.chat.id, Date.now())
       return sendMessage({
         chat_id: ADMIN_UID,
         text:await fetch(notificationUrl).then(r => r.text())
@@ -237,6 +228,7 @@ async function handleBlock(message){
   return sendMessage({
     chat_id: ADMIN_UID,
     text: `UID:${guestChantId}屏蔽成功`,
+
   })
 }
 
@@ -249,6 +241,7 @@ async function handleUnBlock(message){
   return sendMessage({
     chat_id: ADMIN_UID,
     text:`UID:${guestChantId}解除屏蔽成功`,
+
   })
 }
 
@@ -292,14 +285,4 @@ async function registerWebhook (event, requestUrl, suffix, secret) {
 async function unRegisterWebhook (event) {
   const r = await (await fetch(apiUrl('setWebhook', { url: '' }))).json()
   return new Response('ok' in r && r.ok ? 'Ok' : JSON.stringify(r, null, 2))
-}
-
-async function isFraud(id){
-  id = id.toString()
-  let db = await fetch(fraudDb).then(r => r.text())
-  let arr = db.split('\n').filter(v => v)
-  console.log(JSON.stringify(arr))
-  let flag = arr.filter(v => v === id).length !== 0
-  console.log(flag)
-  return flag
 }
