@@ -4,3 +4,4 @@ your name:{{username}}
 your id:{{user_id}}
 your username:[{{user}}](https://t.me/{{user}})
 @{{user}}
+发送配置可查看小火箭配置
